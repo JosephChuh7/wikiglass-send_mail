@@ -28,17 +28,6 @@ from utils import mean,stdev,Global_config
 # EMAIL_DIR = CONFIG.EMAIL_DIR
 
 
-# year version
-YEAR = '2017'
-# pbworks_db config
-PB_DB_USERNAME = 'root'
-PB_DB_PWD = 'root'
-PB_DB_HOST = 'localhost'
-PB_DB_NAME = 'pbworks_db'
-# log file path
-LOGFILE = '/Users/joseph/work/ra/rebuild/send_mail/logs/pbworks.log'
-# email txt files directory
-EMAIL_DIR = '/Users/joseph/work/ra/rebuild/send_mail/email-text/'
 
 def is_unicode_char (char):
     return isinstance(char, unicode)
@@ -83,27 +72,112 @@ def assign_zero(all_grp_list, group_rev_cnt_list):
     return group_rev_cnt_list
 
 
+def connect_db(db_config):
+    '''
+    :param db_config: a dict contains configuration of db  e.g.
+                db_config = {
+                    'user' : PB_DB_USERNAME,
+                    'password' : PB_DB_PWD,
+                    'host' : PB_DB_HOST,
+                    'database' : PB_DB_NAME,
+                    'charset' : CHARSET
+                    }
+    :return: connection conn
+    '''
+    try:
+        conn = mysql.connector.connect(**db_config)
+        return conn
+    except mysql.connector.Error as err:
+        handle_db_except(err)
 
+def handle_db_except(err):
+    if not err: #if err is empty, just return
+        return
+
+    print ("connect to db fails!")
+
+    if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
+        print("Something is wrong with your user name or password")
+    elif err.errno == errorcode.ER_BAD_DB_ERROR:
+        print("Database does not exist")
+    else:
+        pass
+    print (err)
+
+
+def db_exec(conn, sql_cmd, *param):
+
+    '''
+    :param sql_cmd: SQL command
+    :param param:  parameters in SQL command
+    :
+    :return: cur.fetchall()
+    '''
+
+    cur = conn.cursor()
+    result = []
+    try:
+        cur.execute(sql_cmd, *param)
+        if cur.fetchone(): # if this execution has something to fetch
+            result = cur.fetchall()
+    except mysql.connector.Error as err:
+        handle_db_except()
+
+    finally:
+        cur.close()
+
+    return result
+
+
+# year version
+YEAR = '2017'
+# pbworks_db config
+PB_DB_USERNAME = 'root'
+PB_DB_PWD = 'root'
+PB_DB_HOST = 'localhost'
+PB_DB_NAME = 'pbworks_db'
+# log file path
+LOGFILE = '/Users/joseph/work/ra/rebuild/send_mail/logs/pbworks.log'
+# email txt files directory
+EMAIL_DIR = '/Users/joseph/work/ra/rebuild/send_mail/email-text/'
+
+CHARSET = 'utf8mb4'
+
+db_config = {
+    'user' : PB_DB_USERNAME,
+    'password' : PB_DB_PWD,
+    'host' : PB_DB_HOST,
+    'database' : PB_DB_NAME,
+    'charset' : CHARSET
+}
 
 
 try:
     logging.basicConfig(filename=LOGFILE, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
     # Connect to pbworks_db database
-    cnx = mysql.connector.connect(user=PB_DB_USERNAME, password=PB_DB_PWD, host=PB_DB_HOST, database=PB_DB_NAME,
-                                  charset='utf8mb4')
-    cur = cnx.cursor(buffered=True)
-    cur.execute("use " + PB_DB_NAME)
+    conn = connect_db(db_config)
+
+    db_exec(conn, 'use {}'.format(PB_DB_NAME))
 
     # Get a teacher list
-    cur.execute("""	SELECT loginUser.email, loginUser.user, loginUser.full_name
-                        FROM loginUser, Class_user
-                        WHERE loginUser.user = Class_user.name
-                        AND Class_user.role = 'teacher'
-                        AND Class_user.active_email = 1
-                        AND LENGTH(loginUser.email) > 5
-                        AND Class_user.class_id LIKE '""" + YEAR + """pkps%';""")
-    teacher_list = cur.fetchall()
+    # cur.execute("""	SELECT loginUser.email, loginUser.user, loginUser.full_name
+    #                     FROM loginUser, Class_user
+    #                     WHERE loginUser.user = Class_user.name
+    #                     AND Class_user.role = 'teacher'
+    #                     AND Class_user.active_email = 1
+    #                     AND LENGTH(loginUser.email) > 5
+    #                     AND Class_user.class_id LIKE '""" + YEAR + """pkps%';""")
+
+    sql_get_teacher_list = """	SELECT loginUser.email, loginUser.user, loginUser.full_name
+                                    FROM loginUser, Class_user
+                                    WHERE loginUser.user = Class_user.name
+                                    AND Class_user.role = 'teacher'
+                                    AND Class_user.active_email = 1
+                                    AND LENGTH(loginUser.email) > 5
+                                    AND Class_user.class_id LIKE '{}{}'""".format(YEAR, 'pkps%')
+
+    teacher_list = db_exec(conn, sql_get_teacher_list)
 
 
     teacher_email=[]
