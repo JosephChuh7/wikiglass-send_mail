@@ -1,22 +1,19 @@
 #!/usr/bin/python
 # -*- coding: utf-8 -*-
-import mysql.connector
 import time
 import datetime
 import logging
-from mysql.connector import errorcode
-from datetime import timedelta
-
 import sys
 reload(sys)
 sys.setdefaultencoding('utf-8')
 
-from utils import mean,stdev,Global_config
-#from plag_summary import class_summary
+import plag_summary
+import utils
+import db_utils
 
 # CONFIG = Global_config()
 # # year version
-# YEAR = CONFIG.YEAR
+# YEAR = utils.CONFIG.YEAR
 # # pbworks_db config
 # PB_DB_USERNAME = CONFIG.PB_DB_USERNAME
 # PB_DB_PWD = CONFIG.PB_DB_PWD
@@ -28,26 +25,6 @@ from utils import mean,stdev,Global_config
 # EMAIL_DIR = CONFIG.EMAIL_DIR
 
 
-
-def is_unicode_char (char):
-    return isinstance(char, unicode)
-
-# transform every element in a 2d list to utf-8
-# parameters: @list_2d : a 2d list
-# return a new 2d list with all elements coding in utf-8
-def list_2d_encode_utf8(list_2d):
-    result_list = []
-    for row in list_2d:
-        temp = []
-        for i in range(0, len(row)):
-            if is_unicode_char(row[i]):
-                temp.append(row[i].encode('utf-8'))
-            else:
-                temp.append(row[i])
-
-        result_list.append(temp)
-    return result_list
-
 # assign zero to groups that made 0 revisions
 # parameters:
 # @rev_grp_list: a list of group numbers that have revisions
@@ -56,8 +33,8 @@ def list_2d_encode_utf8(list_2d):
 # return : @group_rev_cnt_list in utf-8
 def assign_zero(all_grp_list, group_rev_cnt_list):
 
-    all_grp_list = list_2d_encode_utf8(all_grp_list)
-    group_rev_cnt_list = list_2d_encode_utf8(group_rev_cnt_list)
+    all_grp_list = utils.list_2d_encode_utf8(all_grp_list)
+    group_rev_cnt_list = utils.list_2d_encode_utf8(group_rev_cnt_list)
 
     rev_grp_list = []
 
@@ -72,70 +49,9 @@ def assign_zero(all_grp_list, group_rev_cnt_list):
     return group_rev_cnt_list
 
 
-def connect_db(db_config):
-    '''
-    :param db_config: a dict contains configuration of db  e.g.
-                db_config = {
-                    'user' : PB_DB_USERNAME,
-                    'password' : PB_DB_PWD,
-                    'host' : PB_DB_HOST,
-                    'database' : PB_DB_NAME,
-                    'charset' : CHARSET
-                    }
-    :return: connection conn
-    '''
-    try:
-        conn = mysql.connector.connect(**db_config)
-        return conn
-    except mysql.connector.Error as err:
-        handle_db_except(err)
-
-def handle_db_except(err):
-    if not err: #if err is empty, just return
-        return
-
-    print ("connect to db fails!")
-
-    if err.errno == errorcode.ER_ACCESS_DENIED_ERROR:
-        print("Something is wrong with your user name or password")
-    elif err.errno == errorcode.ER_BAD_DB_ERROR:
-        print("Database does not exist")
-    else:
-        pass
-    print (err)
 
 
-def db_exec(conn, sql_cmd, *param):
-
-    '''
-    :param conn: MySQL connection
-    :param sql_cmd: SQL command
-    :param param:  parameters in SQL command
-    :return: cur.fetchall() if exists
-    '''
-
-    # global exec_num
-
-    cur = conn.cursor()
-    result = []
-    try:
-        cur.execute(sql_cmd, *param)
-        result = cur.fetchall()
-    except mysql.connector.Error as err:
-        print(err)
-
-    finally:
-        cur.close()
-
-    # exec_num +=1
-    # print ("第 {} 次执行".format(exec_num))
-    return result
-
-def close_db_conn(conn):
-    if conn:
-        conn.close()
-
-exec_num = 0
+#exec_num = 0
 
 # year version
 YEAR = '2017'
@@ -163,9 +79,9 @@ db_config = {
 logging.basicConfig(filename=LOGFILE, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # Connect to pbworks_db database
-conn = connect_db(db_config)
+conn = db_utils.connect_db(db_config)
 
-db_exec(conn, 'use {}'.format(PB_DB_NAME))
+db_utils.db_exec(conn, 'use {}'.format(PB_DB_NAME))
 
 # Get a teacher list
 # cur.execute("""	SELECT loginUser.email, loginUser.user, loginUser.full_name
@@ -184,7 +100,7 @@ sql_get_teacher_list = """	SELECT loginUser.email, loginUser.user, loginUser.ful
                                 AND LENGTH(loginUser.email) > 5
                                 AND Class_user.class_id LIKE '{}{}'""".format(YEAR, 'pkps%')
 
-teacher_list = db_exec(conn, sql_get_teacher_list)
+teacher_list = db_utils.db_exec(conn, sql_get_teacher_list)
 
 
 teacher_email=[]
@@ -201,9 +117,9 @@ for row in teacher_list:
 # week_end = datetime.datetime.now().date()
 # week_end = time.mktime(week_end.timetuple())-1
 
-week_start = datetime.datetime.now().date() - timedelta(days=29)
+week_start = datetime.datetime.now().date() - datetime.timedelta(days=29)
 week_start = time.mktime(week_start.timetuple())
-week_end = datetime.datetime.now().date() - timedelta(days=22)
+week_end = datetime.datetime.now().date() - datetime.timedelta(days=22)
 week_end = time.mktime(week_end.timetuple())-1
 
 year = YEAR
@@ -235,7 +151,7 @@ for num in range(len(teacher_email)):
                             AND Class_user.role = 'teacher'
                             AND Class_user.active_email = 1""".format(teacher_username_i, YEAR)
 
-    teacher_class_list = db_exec(conn, sql_get_teacher_class_list)
+    teacher_class_list = db_utils.db_exec(conn, sql_get_teacher_class_list)
 
     for row in teacher_class_list:
         class_name.append(row[0])
@@ -268,7 +184,7 @@ for num in range(len(teacher_email)):
         # class_group_list = cur.fetchall()
 
         sql_get_class_group_list = "SELECT group_no FROM Wiki WHERE class_name = '{}'".format(class_name_i)
-        class_group_list = db_exec(conn, sql_get_class_group_list)
+        class_group_list = db_utils.db_exec(conn, sql_get_class_group_list)
 
         no_of_groups = len(class_group_list)
         # Get a list of revision counts of each group
@@ -297,7 +213,7 @@ for num in range(len(teacher_email)):
                                         AND perm = 'write'
                                         AND Revision.timestamp BETWEEN '{1}' AND '{2}') t
                                         GROUP BY group_no""".format(class_name_i, week_start, week_end)
-        group_rev_cnt_list = db_exec(conn, sql_get_rev_cnt_list)
+        group_rev_cnt_list = db_utils.db_exec(conn, sql_get_rev_cnt_list)
 
         count = no_of_groups
 
@@ -320,8 +236,8 @@ for num in range(len(teacher_email)):
         if is_null:
             stat="Not a single group made any revisions this week. Please consider encouraging students to contribute more actively.</p>"
         else:
-            avg = mean(group_rev_count)
-            sd = stdev(group_rev_count)
+            avg = utils.mean(group_rev_count)
+            sd = utils.stdev(group_rev_count)
             stat = "In this class, the average number of revisions per group is " + str(avg) + ". Following is a brief analysis of weekly performance of the class.</p>"
             print(str(sum(group_rev_count)) + " " + str(avg) + " " + str(sd))
 
@@ -429,7 +345,7 @@ for num in range(len(teacher_email)):
                                 AND u.username IS NOT NULL
                                 ORDER BY u.perm""".format(class_name_i)
 
-        user_list = db_exec(conn, sql_get_user_list)
+        user_list = db_utils.db_exec(conn, sql_get_user_list)
 
         no_of_students = len(user_list)
 
@@ -456,7 +372,7 @@ for num in range(len(teacher_email)):
                                     GROUP BY User_id
                                     ORDER BY SUM(Words_change)""".format(class_name_i, week_start, week_end)
 
-        result_of_stu = db_exec(conn, sql_get_result_of_stu)
+        result_of_stu = db_utils.db_exec(conn, sql_get_result_of_stu)
 
         len_result = len(result_of_stu)
         best = []
@@ -546,7 +462,7 @@ for num in range(len(teacher_email)):
             worst_indiv_comp = worst_indiv_comp+"\n"+str(count-1)+". "+str(zero[count-2]).title()+"<br>"
             worst_indiv_comp = worst_indiv_comp+str(count)+". "+str(zero[count-1]).title()+"</p><br>"
 
-        #plag_summary=class_summary(cur,class_name_i,0,0,'english')
+        #plag_summary=plag_summary.class_summary(cur,class_name_i,0,0,'english')
 
         teacher_email_i = 'josephchuh7@gmail.com'
 
