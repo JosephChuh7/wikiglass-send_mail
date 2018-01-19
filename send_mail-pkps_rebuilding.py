@@ -10,6 +10,7 @@ sys.setdefaultencoding('utf-8')
 import plag_summary
 import utils
 import db_utils
+import email_utils
 
 # assign zero to groups that made 0 revisions
 # parameters:
@@ -92,6 +93,9 @@ week_start = datetime.datetime.now().date() - datetime.timedelta(days=29)
 week_start = time.mktime(week_start.timetuple())
 week_end = datetime.datetime.now().date() - datetime.timedelta(days=22)
 week_end = time.mktime(week_end.timetuple())-1
+
+week_start_ymd = utils.get_date_ymd(week_start) #e.g. 2017/12/17
+week_end_ymd = utils.get_date_ymd(week_end)
 
 year = YEAR
 
@@ -179,14 +183,7 @@ for num in range(len(teacher_email)):
              group_rev_count.append(row[1])
 
         # Output for this part
-        if is_null:
-            stat="Not a single group made any revisions this week. Please consider encouraging students to contribute more actively.</p>"
-        else:
-            avg = utils.mean(group_rev_count)
-            sd = utils.stdev(group_rev_count)
-            stat = "In this class, the average number of revisions per group is " + str(avg) + ". Following is a brief analysis of weekly performance of the class.</p>"
-            print(str(sum(group_rev_count)) + " " + str(avg) + " " + str(sd))
-
+        stat = email_utils.get_stat(is_null, group_rev_count)
 
         # This part is to get the Best 3 and Worst 3 groups in a class by comparing their revision counts
         # No need to fetch data from db here, @group_rev_cnt_list contains all group numbers with there revision counts.
@@ -324,7 +321,12 @@ for num in range(len(teacher_email)):
         best = []
         worst = []
 
-        for i in range(0, 5):
+        if len_result >= 5:
+            num_of_stu_to_show = 5
+        else:
+            num_of_stu_to_show = len_result
+
+        for i in range(0, num_of_stu_to_show):
             worst.append(result_of_stu[i])
             best.append(result_of_stu[len_result - 1 - i])
 
@@ -410,24 +412,58 @@ for num in range(len(teacher_email)):
 
         #plag_summary=plag_summary.class_summary(cur,class_name_i,0,0,'english')
 
+
         teacher_email_i = 'josephchuh7@gmail.com'
+
+        addr_from = 'wikiglass@ccmir.cite.hku.hk'
+        addr_to = teacher_email_i
+        subj = 'Weekly Summary'
+        bcc = ()
+
+        email_info = {
+        	'class_name' : class_name_i,
+        	'teacher_fullname' : teacher_fullname_i,
+        	'week_start' : week_start_ymd,
+        	'week_end' : week_end_ymd,
+        	'stat' : stat,
+        	'best_group_comp' : best_group_comp,
+        	'worst_group_comp' : worst_group_comp,
+        	'best_indiv_comp' : best_indiv_comp,
+        	'worst_indiv_comp' : worst_indiv_comp,
+        }
 
         #Bcc: ecswikis@gmail.com, xh.gslis@gmail.com
         # Adding text up
-        text = "From: wikiglass@ccmir.cite.hku.hk\nTo: " \
-               + teacher_email_i \
-               + "\nBcc:" + "\nContent-Type: text/html\nSubject: Weekly Summary - " + class_name_i + "\n\n" \
-               + "<html><head><title>Weekly Summary</title></head>" + "<body>Dear " + teacher_fullname_i + ",<p><br>This is a weekly summary (" + datetime.datetime.fromtimestamp(
-            week_start).strftime('%Y/%m/%d') \
-               + " - " + datetime.datetime.fromtimestamp(week_end).strftime(
-            '%Y/%m/%d') + ") of students' performance in Class " \
-               + class_name_i[
-                 -2:] + ". " + stat + best_group_comp + worst_group_comp + best_indiv_comp + worst_indiv_comp \
-               + "Please log in to <a href='http://ccmir.cite.hku.hk/wikiglass/'>Wikiglass Site</a> for more details at any time. Data on Wikiglass are updated everyday.<p><br>" \
-               + "Yours sincerely,<br>Wikiglass</body></html>\n\n"
+        text = email_utils.gen_email_text(addr_from, addr_to, subj, *bcc, **email_info)
+
+
         with open(EMAIL_DIR + class_name_i + "_" + teacher_email_i + ".txt", "w") as text_file:
             text_file.write(text)
         text_file.close()
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 

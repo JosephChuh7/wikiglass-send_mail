@@ -60,5 +60,8 @@ def list_2d_encode_utf8(list_2d):
         result_list.append(temp)
     return result_list
 
+def get_date_ymd(timestamp):
+    return datetime.datetime.fromtimestamp(timestamp).strftime('%Y/%m/%d')
+
 if __name__=='__main__':
     pass
