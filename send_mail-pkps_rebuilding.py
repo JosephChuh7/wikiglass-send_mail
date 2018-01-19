@@ -11,20 +11,6 @@ import plag_summary
 import utils
 import db_utils
 
-# CONFIG = Global_config()
-# # year version
-# YEAR = utils.CONFIG.YEAR
-# # pbworks_db config
-# PB_DB_USERNAME = CONFIG.PB_DB_USERNAME
-# PB_DB_PWD = CONFIG.PB_DB_PWD
-# PB_DB_HOST = CONFIG.PB_DB_HOST
-# PB_DB_NAME = CONFIG.PB_DB_NAME
-# # log file path
-# LOGFILE = CONFIG.LOGFILE
-# # email txt files directory
-# EMAIL_DIR = CONFIG.EMAIL_DIR
-
-
 # assign zero to groups that made 0 revisions
 # parameters:
 # @rev_grp_list: a list of group numbers that have revisions
@@ -48,11 +34,6 @@ def assign_zero(all_grp_list, group_rev_cnt_list):
 
     return group_rev_cnt_list
 
-
-
-
-#exec_num = 0
-
 # year version
 YEAR = '2017'
 # pbworks_db config
@@ -75,7 +56,6 @@ db_config = {
     'charset' : CHARSET
 }
 
-
 logging.basicConfig(filename=LOGFILE, level=logging.DEBUG, format='%(asctime)s %(levelname)s %(message)s')
 
 # Connect to pbworks_db database
@@ -84,14 +64,6 @@ conn = db_utils.connect_db(db_config)
 db_utils.db_exec(conn, 'use {}'.format(PB_DB_NAME))
 
 # Get a teacher list
-# cur.execute("""	SELECT loginUser.email, loginUser.user, loginUser.full_name
-#                     FROM loginUser, Class_user
-#                     WHERE loginUser.user = Class_user.name
-#                     AND Class_user.role = 'teacher'
-#                     AND Class_user.active_email = 1
-#                     AND LENGTH(loginUser.email) > 5
-#                     AND Class_user.class_id LIKE '""" + YEAR + """pkps%';""")
-
 sql_get_teacher_list = """	SELECT loginUser.email, loginUser.user, loginUser.full_name
                                 FROM loginUser, Class_user
                                 WHERE loginUser.user = Class_user.name
@@ -101,7 +73,6 @@ sql_get_teacher_list = """	SELECT loginUser.email, loginUser.user, loginUser.ful
                                 AND Class_user.class_id LIKE '{}{}'""".format(YEAR, 'pkps%')
 
 teacher_list = db_utils.db_exec(conn, sql_get_teacher_list)
-
 
 teacher_email=[]
 teacher_username=[]
@@ -130,18 +101,9 @@ for num in range(len(teacher_email)):
     teacher_username_i = teacher_username[num]
     teacher_fullname_i = teacher_fullname[num]
 
-    #print("teacher name: " + teacher_username_i + ", teacher email: " + teacher_email_i)
     print ("teacher name: {0} teacher username: {1} teacher email: {2}".format(teacher_fullname_i, teacher_username_i, teacher_email_i))
 
     class_name=[]
-    # fetch class_id
-    # cur.execute("""	SELECT DISTINCT(class_id)
-    #                 FROM Class_user
-    #                 WHERE name = %s
-    #                 AND Class_user.class_id LIKE '""" + YEAR + """%'
-    #                 AND Class_user.role = 'teacher'
-    #                 AND Class_user.active_email = 1""", (teacher_username_i,))
-    # teacher_class_list = cur.fetchall()
 
     # fetch class_id
     sql_get_teacher_class_list = """ SELECT DISTINCT(class_id)
@@ -180,26 +142,10 @@ for num in range(len(teacher_email)):
 
         # This part calculats the average value of the revision counts of each group in a class
         # Get a list of group number
-        # cur.execute(" SELECT group_no FROM Wiki WHERE class_name = %s",(class_name_i,))
-        # class_group_list = cur.fetchall()
-
         sql_get_class_group_list = "SELECT group_no FROM Wiki WHERE class_name = '{}'".format(class_name_i)
         class_group_list = db_utils.db_exec(conn, sql_get_class_group_list)
 
         no_of_groups = len(class_group_list)
-        # Get a list of revision counts of each group
-        # cur.execute("""	SELECT t.group_no, COUNT(t.group_no) AS count
-        #                 FROM (
-        #                     SELECT Wiki.group_no AS group_no
-        #                     FROM Revision, User, Page, Wiki
-        #                     WHERE Revision.user_id = User.user_id
-        #                     AND Revision.page_id = Page.Page_id
-        #                     AND Page.wiki_id = Wiki.wiki_id
-        #                     AND Wiki.class_name = %s
-        #                     AND perm = 'write'
-        #                     AND Revision.timestamp BETWEEN %s AND %s) t
-        #                     GROUP BY group_no""",(class_name_i, week_start, week_end,))
-        # group_rev_cnt_list = cur.fetchall()
 
         # Get a list of revision counts of each group
         sql_get_rev_cnt_list = """  SELECT t.group_no, COUNT(t.group_no) AS count
