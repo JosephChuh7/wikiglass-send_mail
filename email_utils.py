@@ -18,15 +18,12 @@ import utils
 
 # e.g. translate (1, 2, 3) to "1, 2, 3"
 # param: tu
-def tuple2str(tu):
-    tu_str = ""
-    if tu:
-        len_tu = len(tu)
-        for i in range(0, len_tu - 1):
-            tu_str += "{}, ".format(tu[i])
+def tuple2str(tu, sep):
+    tu_list = []
+    for item in tu:
+        tu_list.append(str(item))
 
-        tu_str += tu[len_tu - 1]
-    return tu_str
+    return sep.join(tu_list)
 
 
 # "This is emample" -> "<tag>This is example</tag>""
@@ -35,6 +32,28 @@ def add_html_tag(tag, content):
 
 def add_hylink(link, content):
     return "<a href='{}'>".format(link) + content + "</a>"
+
+# e.g. <p style="padding-left:3em;margin:2px;" name="para">This is Para</p>
+# @ **prpty : a dict contains all key value paris
+# e.g. prpty = {
+#          "style": "padding-left:3em;margin:2px;",
+#          "name": "para"
+#        }
+def add_html_tag_with_prpty(tag, content, **prpty):
+
+    prpty_list = []
+
+    for (k, v) in prpty.items():
+        item = '{}="{}"'.format(k, v)
+        prpty_list.append(item)
+
+    prpty_str = " ".join(prpty_list)
+    prefix = "<{} {}>".format(tag, prpty_str)
+    suffix = "</{}>".format(tag)
+
+    return prefix + content + suffix
+
+
 
 def get_stat(is_null, group_rev_count):
     if is_null:
@@ -48,8 +67,57 @@ def get_stat(is_null, group_rev_count):
 
     return stat
 
+
+def get_best_group_comp(len_best_group, best_group_no, best_group_rev_count):
+    '''
+    Below is an e.g.
+    ==================
+
+    Group comparsion  #(title)
+    Top 3 groups with the most revisions: #(sub_title)
+
+    1. Group 2 (85 revisions) #(content)
+    2. Group 4 (33 revisions)
+    3. Group 8 (17 revisions)
+    '''
+
+    if len_best_group < 1:
+        return ""
+
+    if len_best_group == 1:
+        sub_title = "The only group made revision:"
+    else:
+        sub_title = "Top {} groups with the most revisions:".format(len_best_group)
+
+
+    title = "Group comparsion"
+    title = add_html_tag('b', title)
+    title = add_html_tag('u', title)
+    title += "<br>"
+
+
+    content_list = []
+
+    for i in range(0, len_best_group):
+        record = "{}. Group {} ({} revisions)".format(i + 1, best_group_no[i], best_group_rev_count[i])
+        content_list.append(record)
+
+    content = "<br>".join(content_list)
+
+
+    prpty = {
+        "style" : "padding-left:3em;margin:2px;"
+    }
+
+    content = add_html_tag_with_prpty('p', content, **prpty)
+
+    text = title + sub_title + content
+
+    return text
+
+
 def gen_email_text(addr_from, addr_to, subj, *bcc, **info):
-    bcc_str = tuple2str(bcc)
+    bcc_str = tuple2str(bcc, ", ")
     subj_str = "{} - {}".format(subj, info['class_name'])
 
     headers = """\
@@ -93,6 +161,20 @@ Subject: {3}
 
     text = headers + content
     return text
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 if __name__ == '__main__':

@@ -213,19 +213,21 @@ for num in range(len(teacher_email)):
             best_group_no.append(row[0])
             best_group_rev_count.append(row[1])
 
-        if len_best_group==3:
-            best_group_comp = "<u><b>Group comparsion</u><br>Top 3 groups with the most revisions:<p style=\"padding-left:3em;margin:2px;\">1. Group "+str(best_group_no[0]) \
-                        +" ("+str(best_group_rev_count[0])+" revisions)<br>2. Group "+str(best_group_no[1])+" ("+str(best_group_rev_count[1]) \
-                        +" revisions)<br>3. Group "+str(best_group_no[2])+" ("+str(best_group_rev_count[2])+" revisions)</p>"
-        elif len_best_group==2:
-            best_group_comp = "<u><b>Group comparsion</u><br>Top 2 groups with the most revisions:<p style=\"padding-left:3em;margin:2px;\">1. Group "+str(best_group_no[0]) \
-                        +" ("+str(best_group_rev_count[0])+" revisions)<br>2. Group "+str(best_group_no[1])+" ("+str(best_group_rev_count[1]) \
-                        +" revisions)</p>"
-        elif len_best_group==1:
-            best_group_comp = "<u><b>Group comparsion</u><br>The only group made revision:<p style=\"padding-left:3em;margin:2px;\">1. Group "+str(best_group_no[0]) \
-                        +" ("+str(best_group_rev_count[0])+" revisions)</p>"
-        else:
-            best_group_comp = ""
+        # if len_best_group==3:
+        #     best_group_comp = "<u><b>Group comparsion</u><br>Top 3 groups with the most revisions:<p style=\"padding-left:3em;margin:2px;\">1. Group "+str(best_group_no[0]) \
+        #                 +" ("+str(best_group_rev_count[0])+" revisions)<br>2. Group "+str(best_group_no[1])+" ("+str(best_group_rev_count[1]) \
+        #                 +" revisions)<br>3. Group "+str(best_group_no[2])+" ("+str(best_group_rev_count[2])+" revisions)</p>"
+        # elif len_best_group==2:
+        #     best_group_comp = "<u><b>Group comparsion</u><br>Top 2 groups with the most revisions:<p style=\"padding-left:3em;margin:2px;\">1. Group "+str(best_group_no[0]) \
+        #                 +" ("+str(best_group_rev_count[0])+" revisions)<br>2. Group "+str(best_group_no[1])+" ("+str(best_group_rev_count[1]) \
+        #                 +" revisions)</p>"
+        # elif len_best_group==1:
+        #     best_group_comp = "<u><b>Group comparsion</u><br>The only group made revision:<p style=\"padding-left:3em;margin:2px;\">1. Group "+str(best_group_no[0]) \
+        #                 +" ("+str(best_group_rev_count[0])+" revisions)</p>"
+        # else:
+        #     best_group_comp = ""
+
+        best_group_comp = email_utils.get_best_group_comp(len_best_group, best_group_no, best_group_rev_count)
 
         # Output Worst 3 groups
         zero = []  # all groups with zero revision counts
