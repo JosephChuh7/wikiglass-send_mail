@@ -213,20 +213,6 @@ for num in range(len(teacher_email)):
             best_group_no.append(row[0])
             best_group_rev_count.append(row[1])
 
-        # if len_best_group==3:
-        #     best_group_comp = "<u><b>Group comparsion</u><br>Top 3 groups with the most revisions:<p style=\"padding-left:3em;margin:2px;\">1. Group "+str(best_group_no[0]) \
-        #                 +" ("+str(best_group_rev_count[0])+" revisions)<br>2. Group "+str(best_group_no[1])+" ("+str(best_group_rev_count[1]) \
-        #                 +" revisions)<br>3. Group "+str(best_group_no[2])+" ("+str(best_group_rev_count[2])+" revisions)</p>"
-        # elif len_best_group==2:
-        #     best_group_comp = "<u><b>Group comparsion</u><br>Top 2 groups with the most revisions:<p style=\"padding-left:3em;margin:2px;\">1. Group "+str(best_group_no[0]) \
-        #                 +" ("+str(best_group_rev_count[0])+" revisions)<br>2. Group "+str(best_group_no[1])+" ("+str(best_group_rev_count[1]) \
-        #                 +" revisions)</p>"
-        # elif len_best_group==1:
-        #     best_group_comp = "<u><b>Group comparsion</u><br>The only group made revision:<p style=\"padding-left:3em;margin:2px;\">1. Group "+str(best_group_no[0]) \
-        #                 +" ("+str(best_group_rev_count[0])+" revisions)</p>"
-        # else:
-        #     best_group_comp = ""
-
         best_group_comp = email_utils.get_best_group_comp(len_best_group, best_group_no, best_group_rev_count)
 
         # Output Worst 3 groups
@@ -239,43 +225,8 @@ for num in range(len(teacher_email)):
             if row[1] == 0:
                 zero.append(row)
 
-        count = len(zero)  # count: number of groups with zero revision counts
 
-        if count==0:
-            worst_group_comp = "3 groups with the fewest revisions:<p style=\"padding-left:3em;margin:2px;\">1. Group "+str(worst_group_no[0]) \
-                +" ("+str(worst_group_rev_count[0])+" revisions)<br>2. Group "+str(worst_group_no[1])+" ("+str(worst_group_rev_count[1]) \
-                +" revisions)<br>3. Group "+str(worst_group_no[2])+" ("+str(worst_group_rev_count[2])+" revisions)</p><br>"
-        elif count==1:
-            worst_group_comp = "3 groups with the fewest revisions:<p style=\"padding-left:3em;margin:2px;\">1. Group "+str(zero[0][0]) \
-                +" (0 revisions)<br>2. Group "+str(worst_group_no[0])+" ("+str(worst_group_rev_count[0]) \
-                +" revisions)<br>3. Group "+str(worst_group_no[1])+" ("+str(worst_group_rev_count[1])+" revisions)</p><br>"
-        elif count==2:
-            worst_group_comp = "3 groups with the fewest revisions:<p style=\"padding-left:3em;margin:2px;\">1. Group "+str(zero[0][0]) \
-                +" (0 revisions)<br>2. Group "+str(zero[1][0])+" (0 revisions)<br>3. Group " \
-                +str(worst_group_no[0])+" ("+str(worst_group_rev_count[0])+" revisions)</p><br>"
-        elif count==no_of_groups:
-            worst_group_comp = ""
-        else:
-            worst_group_comp = "Groups without making any revisions:<p style=\"padding-left:3em;margin:2px;\">"
-            for i in range(1,count-1):
-                worst_group_comp = worst_group_comp+str(i)+". Group "+str(zero[i-1][0])+"<br>"
-            worst_group_comp = worst_group_comp+str(count-1)+". Group "+str(zero[count-2][0])+"<br>"
-            worst_group_comp = worst_group_comp+str(count)+". Group "+str(zero[count-1][0])+"</p><br>"
-
-
-        # This part is to get the Best 5 and Worst 5 students in a class by comparing their word changes
-        # Get a list all students
-        # cur.execute("""SELECT u.user_id, u.full_name, u.username, u.perm
-            # 			FROM User_wiki AS uw
-            # 			LEFT OUTER JOIN User AS u
-            # 				ON u.user_id = uw.uid
-            # 			INNER JOIN Wiki AS w
-            # 				ON uw.wiki_id = w.wiki_id
-            # 			WHERE w.class_name = %s
-            # 			AND u.perm = 'write'
-            # 			AND u.username IS NOT NULL
-            # 			ORDER BY u.perm""",(class_name_i ,))
-        # user_list = cur.fetchall()
+        worst_group_comp = email_utils.get_worst_group_comp(no_of_groups, worst_group_no, worst_group_rev_count, zero)
 
         # This part is to get the Best 5 and Worst 5 students in a class by comparing their word changes
         # Get a list all students
@@ -293,18 +244,6 @@ for num in range(len(teacher_email)):
         user_list = db_utils.db_exec(conn, sql_get_user_list)
 
         no_of_students = len(user_list)
-
-        # Get a list of the Best and Worst 5 students
-        # cur.execute("""SELECT User_id, User_name, User_no, User_perm, COUNT(*), SUM(Words_addition), SUM(Words_deletion), SUM(Words_change)
-        # 							FROM Revision_Stats, Page, Wiki
-        # 							WHERE Revision_Stats.page_id = Page.Page_id
-        # 							AND Page.wiki_id = Wiki.wiki_id
-        # 							AND Wiki.class_name = %s
-        # 							AND Revision_creation_time BETWEEN %s AND %s
-        # 							AND User_perm = 'write'
-        # 							GROUP BY User_id
-        # 							ORDER BY SUM(Words_change)""",(class_name_i, week_start, week_end,))
-        # result_of_stu = cur.fetchall()
 
         # Get a list of the Best and Worst 5 students
         sql_get_result_of_stu = """SELECT User_id, User_name, User_no, User_perm, COUNT(*), SUM(Words_addition), SUM(Words_deletion), SUM(Words_change)

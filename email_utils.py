@@ -116,6 +116,54 @@ def get_best_group_comp(len_best_group, best_group_no, best_group_rev_count):
     return text
 
 
+def get_worst_group_comp(no_of_groups, worst_group_no, worst_group_rev_count, zero):
+    text = ""
+
+    sub_title = "3 groups with the fewest revisions:"
+
+    content_list = []
+
+    len_zero = len(zero)
+
+    if len_zero == 0:
+        for i in range(0, 3):
+            record = "{}. Group {} ({} revisions)".format(i + 1, worst_group_no[i], worst_group_rev_count[i])
+            content_list.append(record)
+
+    elif len_zero < 3:
+
+        index = 1
+        for i in range(0, len_zero):
+            record = "{}. Group {} ({} revisions)".format(index, zero[i][0], 0)
+            content_list.append(record)
+            index += 1
+
+        for i in range(0, 3 - len_zero):
+            record = "{}. Group {} ({} revisions)".format(index, worst_group_no[i], worst_group_rev_count[i])
+            content_list.append(record)
+            index += 1
+
+    elif len_zero == no_of_groups:
+        return text
+    else:
+        sub_title = "Groups without making any revisions:"
+
+        for i in range(0, len_zero):
+            record = "{}. Group {}".format(i + 1, zero[i][0])
+            content_list.append(record)
+
+    content = "<br>".join(content_list)
+
+    prpty = {
+        "style": "padding-left:3em;margin:2px;"
+    }
+
+    content = add_html_tag_with_prpty('p', content, **prpty)
+
+    text = sub_title + content
+
+    return text
+
 def gen_email_text(addr_from, addr_to, subj, *bcc, **info):
     bcc_str = tuple2str(bcc, ", ")
     subj_str = "{} - {}".format(subj, info['class_name'])
