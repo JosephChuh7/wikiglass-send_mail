@@ -115,7 +115,6 @@ def get_best_group_comp(len_best_group, best_group_no, best_group_rev_count):
 
     return text
 
-
 def get_worst_group_comp(no_of_groups, worst_group_no, worst_group_rev_count, zero):
     text = ""
 
@@ -161,6 +160,76 @@ def get_worst_group_comp(no_of_groups, worst_group_no, worst_group_rev_count, ze
     content = add_html_tag_with_prpty('p', content, **prpty)
 
     text = sub_title + content
+
+    return text
+
+
+# @best_stu_list:   a list contains infos of the best students extract from @result_of_stu
+# @best_stu_info:  a dict which allows this function to be called using @best_stu_name, @best_stu_add
+# and @best_stu_del directly instead of using @best_stu_list
+#
+
+def get_best_indiv_comp(best_stu_list=[], **best_stu_info):
+
+    '''
+    best_stu_info = {
+        "best_stu_name" : best_stu_name,
+        "best_stu_add" : best_stu_add,
+        "best_stu_del" : best_stu_del
+    }
+
+    '''
+    if not best_stu_list and not best_stu_info:
+        return ""
+
+    best_stu_name = []
+    best_stu_add = []
+    best_stu_del = []
+
+
+    if best_stu_list:
+
+        for row in best_stu_list:
+            user_name = row[1].encode('utf-8')
+            total_a = row[5]
+            total_d = row[6]
+            best_stu_name.append(user_name)
+            best_stu_add.append(total_a)
+            best_stu_del.append(total_d)
+
+
+    else:
+        best_stu_name = best_stu_info["best_stu_name"]
+        best_stu_add = best_stu_info["best_stu_add"]
+        best_stu_del = best_stu_info["best_stu_del"]
+
+    title = "Individual performance"
+    title = add_html_tag('b', title)
+    title = add_html_tag('u', title)
+    title += "<br>"
+
+    len_best = len(best_stu_name)
+
+    if len_best >= 2:
+        sub_title = "Top {} students with the most contributions:".format(len_best)
+    else : #len_best == 1
+        sub_title = "The top student with the most contribution is:"
+
+    content_list = []
+
+    for i in range (0, len_best):
+        record = "{0}. {1} ({2} words added, {3} words deleted)".format(i + 1, best_stu_name[i], best_stu_add[i], best_stu_del[i])
+        content_list.append(record)
+
+    content = "<br>".join(content_list)
+
+    prpty = {
+        "style" : "padding-left:3em;margin:2px;"
+    }
+
+    content = add_html_tag_with_prpty('p', content, **prpty)
+
+    text = title + sub_title + content
 
     return text
 

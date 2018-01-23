@@ -259,7 +259,7 @@ for num in range(len(teacher_email)):
         result_of_stu = db_utils.db_exec(conn, sql_get_result_of_stu)
 
         len_result = len(result_of_stu)
-        best = []
+        best_stu_list = []
         worst = []
 
         if len_result >= 5:
@@ -269,33 +269,36 @@ for num in range(len(teacher_email)):
 
         for i in range(0, num_of_stu_to_show):
             worst.append(result_of_stu[i])
-            best.append(result_of_stu[len_result - 1 - i])
+            best_stu_list.append(result_of_stu[len_result - 1 - i])
 
         #del len_result
 
-        # Output Best 5 students
-        user_of_page = []
-        count = 0
-        for row in best:
-            user_name = row[1].encode('utf-8')
-            total_a = row[5]
-            total_d = row[6]
-            best_stu_name.append(user_name)
-            best_stu_add.append(total_a)
-            best_stu_del.append(total_d)
-            count = count + 1
 
-        if count>=2:
-            best_indiv_comp = u"\n<u><b>Individual performance</u><br>Top "+str(count)+" students with the most contributions:<p style=\"padding-left:3em;margin:2px;\">"
-            for i in range(1,count-1):
-                best_indiv_comp = best_indiv_comp+str(i)+". "+str(best_stu_name[i-1]).title()+" ("+str(best_stu_add[i-1])+" words added, "+str(best_stu_del[i-1])+" words deleted)<br>"
-            best_indiv_comp = best_indiv_comp+str(count-1)+". "+str(best_stu_name[count-2]).title()+" ("+str(best_stu_add[count-2])+" words added, "+str(best_stu_del[count-2])+" words deleted)<br>"
-            best_indiv_comp = best_indiv_comp+str(count)+". "+str(best_stu_name[count-1]).title()+" ("+str(best_stu_add[count-1])+" words added, "+str(best_stu_del[count-1])+" words deleted)<br></p>"
-        elif count==1:
-            best_indiv_comp = "\n<u><b>Individual performance</u><br>The top student with the most contribution is<p style=\"padding-left:3em;margin:2px;\">"
-            best_indiv_comp = best_indiv_comp+"1. "+str(best_stu_name[0]).title()+" ("+str(best_stu_add[0])+" words added, "+str(best_stu_del[0])+" words deleted).<br></p>"
-        else:
-            best_indiv_comp = u""
+        # user_of_page = []
+        # count = 0
+        # for row in best:
+        #     user_name = row[1].encode('utf-8')
+        #     total_a = row[5]
+        #     total_d = row[6]
+        #     best_stu_name.append(user_name)
+        #     best_stu_add.append(total_a)
+        #     best_stu_del.append(total_d)
+        #     count = count + 1
+        #
+        # if count>=2:
+        #     best_indiv_comp = u"\n<u><b>Individual performance</u><br>Top "+str(count)+" students with the most contributions:<p style=\"padding-left:3em;margin:2px;\">"
+        #     for i in range(1,count-1):
+        #         best_indiv_comp = best_indiv_comp+str(i)+". "+str(best_stu_name[i-1]).title()+" ("+str(best_stu_add[i-1])+" words added, "+str(best_stu_del[i-1])+" words deleted)<br>"
+        #     best_indiv_comp = best_indiv_comp+str(count-1)+". "+str(best_stu_name[count-2]).title()+" ("+str(best_stu_add[count-2])+" words added, "+str(best_stu_del[count-2])+" words deleted)<br>"
+        #     best_indiv_comp = best_indiv_comp+str(count)+". "+str(best_stu_name[count-1]).title()+" ("+str(best_stu_add[count-1])+" words added, "+str(best_stu_del[count-1])+" words deleted)<br></p>"
+        # elif count==1:
+        #     best_indiv_comp = "\n<u><b>Individual performance</u><br>The top student with the most contribution is<p style=\"padding-left:3em;margin:2px;\">"
+        #     best_indiv_comp = best_indiv_comp+"1. "+str(best_stu_name[0]).title()+" ("+str(best_stu_add[0])+" words added, "+str(best_stu_del[0])+" words deleted).<br></p>"
+        # else:
+        #     best_indiv_comp = u""
+
+        # Output Best 5 students
+        best_indiv_comp = email_utils.get_best_indiv_comp(best_stu_list)
 
         # Output Worst 5 students
         user_of_page = []
