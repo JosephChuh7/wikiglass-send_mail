@@ -164,18 +164,35 @@ def get_worst_group_comp(no_of_groups, worst_group_no, worst_group_rev_count, ze
     return text
 
 
-# @best_stu_list:   a list contains infos of the best students extract from @result_of_stu
-# @best_stu_info:  a dict which allows this function to be called using @best_stu_name, @best_stu_add
-# and @best_stu_del directly instead of using @best_stu_list
-#
+# best_stu_info = {
+#         "best_stu_name" : best_stu_name,
+#         "best_stu_add" : best_stu_add,
+#         "best_stu_del" : best_stu_del
+#     }
+def get_best_stu_info(best_stu_list):
 
-# This func can either be called using @best_stu_list
-# or using @**best_stu_info(which is a dict contains, @best_stu_name, @best_stu_add, @best_stu_del)
-#
-# NOTE: if @best_stu_list is not empty, this parameter will be used.
-#   Leave @best_stu_list empty if you want to use **best_stu_info
+    best_stu_name = []
+    best_stu_add = []
+    best_stu_del = []
 
-def get_best_indiv_comp(best_stu_list=[], **best_stu_info):
+    for row in best_stu_list:
+        user_name = row[1].encode('utf-8')
+        total_a = row[5]
+        total_d = row[6]
+        best_stu_name.append(user_name)
+        best_stu_add.append(total_a)
+        best_stu_del.append(total_d)
+
+    return {
+        "best_stu_name": best_stu_name,
+        "best_stu_add": best_stu_add,
+        "best_stu_del": best_stu_del
+    }
+
+
+# NOTE: Please follow the format of best_stu_info given in comment when calling this function
+
+def get_best_indiv_comp(**best_stu_info):
 
     '''
     best_stu_info = {
@@ -185,29 +202,12 @@ def get_best_indiv_comp(best_stu_list=[], **best_stu_info):
     }
 
     '''
-    if not best_stu_list and not best_stu_info:
+    if not best_stu_info:
         return ""
 
-    best_stu_name = []
-    best_stu_add = []
-    best_stu_del = []
-
-
-    if best_stu_list:
-
-        for row in best_stu_list:
-            user_name = row[1].encode('utf-8')
-            total_a = row[5]
-            total_d = row[6]
-            best_stu_name.append(user_name)
-            best_stu_add.append(total_a)
-            best_stu_del.append(total_d)
-
-
-    else:
-        best_stu_name = best_stu_info["best_stu_name"]
-        best_stu_add = best_stu_info["best_stu_add"]
-        best_stu_del = best_stu_info["best_stu_del"]
+    best_stu_name = best_stu_info["best_stu_name"]
+    best_stu_add = best_stu_info["best_stu_add"]
+    best_stu_del = best_stu_info["best_stu_del"]
 
     title = "Individual performance"
     title = add_html_tag('b', title)
@@ -266,7 +266,7 @@ def get_worst_stu_info(worst_stu_list):
     }
 
 
-
+# NOTE: Please follow the format of worst_stu_info given in comment when calling this function
 def get_worst_indiv_comp(zero_stu_list=(), **worst_stu_info):
 
     '''
@@ -375,20 +375,6 @@ Subject: {3}
 
     text = headers + content
     return text
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 
 
 if __name__ == '__main__':
