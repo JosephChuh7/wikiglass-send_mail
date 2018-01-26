@@ -260,7 +260,8 @@ for num in range(len(teacher_email)):
 
         len_result = len(result_of_stu)
         best_stu_list = []
-        worst = []
+        worst_stu_list = []
+        zero_stu_list = []
 
         if len_result >= 5:
             num_of_stu_to_show = 5
@@ -268,9 +269,13 @@ for num in range(len(teacher_email)):
             num_of_stu_to_show = len_result
 
         for i in range(0, num_of_stu_to_show):
-            worst.append(result_of_stu[i])
+            worst_stu_list.append(result_of_stu[i])
             best_stu_list.append(result_of_stu[len_result - 1 - i])
 
+
+        for row in result_of_stu:
+            if row[7] == 0:
+               zero_stu_list.append(row[1])
         #del len_result
 
 
@@ -301,60 +306,16 @@ for num in range(len(teacher_email)):
         best_indiv_comp = email_utils.get_best_indiv_comp(best_stu_list)
 
         # Output Worst 5 students
-        user_of_page = []
-        zero = []
-        for row in worst:
-            if row[7] != 0:
-                user_of_page.append(row[0])
-                worst_stu_name.append(row[1].encode('utf-8'))
-                worst_stu_add.append(row[5])
-                worst_stu_del.append(row[6])
-        print(str(no_of_students) + " === " + str(len(user_of_page)))
 
-        for row in result_of_stu:
-            if row[7] == 0:
-               zero.append(row[1])
-
-        count = len(zero)  # count: number of students with zero revision counts
-
-        if count==0:
-            worst_indiv_comp = u"\n5 students with the fewest contributions:<p style=\"padding-left:3em;margin:2px;\">1. "+str(worst_stu_name[0]).title() \
-                +" ("+str(worst_stu_add[0])+" words added, "+str(worst_stu_del[0])+" words deleted)<br>2. "+str(worst_stu_name[1]).title()+" ("+str(worst_stu_add[1]) \
-                +" words added, "+str(worst_stu_del[1])+" words deleted)<br>3. "+str(worst_stu_name[2]).title()+" ("+str(worst_stu_add[2])+" words added, " \
-                +str(worst_stu_del[2])+" words deleted)<br>4. "+str(worst_stu_name[3]).title()+" ("+str(worst_stu_add[3])+" words added, "+str(worst_stu_del[3]) \
-                +" words deleted)<br>5. "+str(worst_stu_name[4]).title()+" ("+str(worst_stu_add[4])+" words added, "+str(worst_stu_del[4])+" words deleted)</p><br>"
-        elif count==1:
-            worst_indiv_comp = u"\n5 students with the fewest contributions:<p style=\"padding-left:3em;margin:2px;\">1. "+str(zero[0]).title() \
-                +" (0 words added, 0 words deleted)<br>2. "+str(worst_stu_name[0]).title()+" ("+str(worst_stu_add[0]) \
-                +" words added, "+str(worst_stu_del[0])+" words deleted)<br>3. "+str(worst_stu_name[1]).title()+" ("+str(worst_stu_add[1])+" words added, " \
-                +str(worst_stu_del[1])+" words deleted)<br>4. "+str(worst_stu_name[2]).title()+" ("+str(worst_stu_add[2])+" words added, "+str(worst_stu_del[2]) \
-                +" words deleted)<br>5. "+str(worst_stu_name[3]).title()+" ("+str(worst_stu_add[3])+" words added, "+str(worst_stu_del[3])+" words deleted)</p><br>"
-        elif count==2:
-            worst_indiv_comp = u"\n5 students with the fewest contributions:<p style=\"padding-left:3em;margin:2px;\">1. "+str(zero[0]).title() \
-                +" (0 words added, 0 words deleted)<br>2. "+str(zero[1]).title()+" (0 words added, 0 words deleted)<br>3. "+str(worst_stu_name[0]).title() \
-                +" ("+str(worst_stu_add[0])+" words added, "+str(worst_stu_del[0])+" words deleted)<br>4. "+str(worst_stu_name[1]).title()+" ("+str(worst_stu_add[1]) \
-                +" words added, "+str(worst_stu_del[1])+" words deleted)<br>5. "+str(worst_stu_name[2]).title()+" ("+str(worst_stu_add[2])+" words added, " \
-                +str(worst_stu_del[2])+" words deleted)</p><br>"
-        elif count==3:
-            worst_indiv_comp = u"\n5 students with the fewest contributions:<p style=\"padding-left:3em;margin:2px;\">1. "+str(zero[0]).title()\
-                +" (0 words added, 0 words deleted)<br>2. "+str(zero[1]).title()+" (0 words added, 0 words deleted)<br>3. "+str(zero[2]).title()+" (0 words added, " \
-                +"0 words deleted)<br>4. "+str(worst_stu_name[0]).title()+" ("+str(worst_stu_add[0])+" words added, "+str(worst_stu_del[0]) \
-                +" words deleted)<br>5. "+str(worst_stu_name[1]).title()+" ("+str(worst_stu_add[1])+" words added, "+str(worst_stu_del[1])+" words deleted)</p><br>"
-        elif count==4 and no_of_students > 4:
-            worst_indiv_comp = u"\n5 students with the fewest contributions:<p style=\"padding-left:3em;margin:2px;\">1. "+str(zero[0]).title() \
-                +" (0 words added, 0 words deleted)<br>2. "+str(zero[1]).title()+" (0 words added, 0 words deleted)<br>3. "+str(zero[2]).title()+" (0 words added, " \
-                +"0 words deleted)<br>4. "+str(zero[3]).title()+" (0 words added, 0 words deleted)<br>5. " \
-                +str(worst_stu_name[0]).title()+" ("+str(worst_stu_add[0])+" words added, "+str(worst_stu_del[0])+" words deleted)</p><br>"
-        elif count == no_of_students:
-            worst_indiv_comp = u""
-        else:
-            worst_indiv_comp = u"\nStudents without making any revisions:<p style=\"padding-left:3em;margin:2px;\">"
-            for i in range(1,count-1):
-                worst_indiv_comp = worst_indiv_comp+str(i)+". "+str(zero[i-1]).title()+"<br>"
-            worst_indiv_comp = worst_indiv_comp+"\n"+str(count-1)+". "+str(zero[count-2]).title()+"<br>"
-            worst_indiv_comp = worst_indiv_comp+str(count)+". "+str(zero[count-1]).title()+"</p><br>"
+        print(str(no_of_students) + " === " + str(len(worst_stu_list)))
 
         #plag_summary=plag_summary.class_summary(cur,class_name_i,0,0,'english')
+
+
+
+        worst_stu_info = email_utils.get_worst_stu_info(worst_stu_list)
+
+        worst_indiv_comp = email_utils.get_worst_indiv_comp(zero_stu_list, **worst_stu_info)
 
 
         teacher_email_i = 'josephchuh7@gmail.com'

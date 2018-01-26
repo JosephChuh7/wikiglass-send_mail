@@ -169,6 +169,12 @@ def get_worst_group_comp(no_of_groups, worst_group_no, worst_group_rev_count, ze
 # and @best_stu_del directly instead of using @best_stu_list
 #
 
+# This func can either be called using @best_stu_list
+# or using @**best_stu_info(which is a dict contains, @best_stu_name, @best_stu_add, @best_stu_del)
+#
+# NOTE: if @best_stu_list is not empty, this parameter will be used.
+#   Leave @best_stu_list empty if you want to use **best_stu_info
+
 def get_best_indiv_comp(best_stu_list=[], **best_stu_info):
 
     '''
@@ -232,6 +238,97 @@ def get_best_indiv_comp(best_stu_list=[], **best_stu_info):
     text = title + sub_title + content
 
     return text
+
+
+
+
+# worst_stu_info = {
+#   "worst_stu_name" : worst_stu_name,  # @worst_stu_name should only contains names of those whose revision number > 0
+#    "worst_stu_add" : worst_stu_add,    # so is @worst_stu_add
+#    "worst_stu_del" : worst_stu_del.    # and @worst_stu_del
+# }
+def get_worst_stu_info(worst_stu_list):
+
+    worst_stu_name = []
+    worst_stu_add = []
+    worst_stu_del = []
+
+    for row in worst_stu_list:
+        if row[7] != 0:
+            worst_stu_name.append(row[1].encode('utf-8'))
+            worst_stu_add.append(row[5])
+            worst_stu_del.append(row[6])
+
+    return {
+        "worst_stu_name": worst_stu_name,
+        "worst_stu_add" : worst_stu_add,
+        "worst_stu_del" : worst_stu_del
+    }
+
+
+
+def get_worst_indiv_comp(zero_stu_list=(), **worst_stu_info):
+
+    '''
+    worst_stu_info = {
+        "zero_list" : zero_stu_list,
+        "worst_stu_name" : worst_stu_name,  # @worst_stu_name should only contains names of those whose revision number > 0
+        "worst_stu_add" : worst_stu_add,    # so is @worst_stu_add
+        "worst_stu_del" : worst_stu_del.    # and @worst_stu_del
+    }
+
+    '''
+
+    if not zero_stu_list and not worst_stu_info:
+        return ""
+
+    worst_stu_name = worst_stu_info['worst_stu_name']
+    worst_stu_add = worst_stu_info['worst_stu_add']
+    worst_stu_del = worst_stu_info['worst_stu_del']
+
+    len_worst = len(worst_stu_name)
+    len_zero = len(zero_stu_list)
+
+    content_list = []
+
+    if len_worst == 0 or len_zero >= 5:  # all students have 0 revisions
+
+        sub_title = "Students without making any revisions:"
+
+        for i in range(0, len_zero):
+            record = "{}. {}".format(i + 1, zero_stu_list[i])
+            content_list.append(record)
+
+    else:  # as long as len_worst >0 and len_zero <5, len_worst + len_zero == 5
+        sub_title = "5 students with the fewest contributions:"
+
+        index = 1
+
+        for i in range(0, len_zero):
+            record = "{}. {} (0 words added, 0 words deleted)".format(index, zero_stu_list[i])
+            content_list.append(record)
+            index += 1
+
+        for i in range(0, len_worst):
+            record = "{}. {} ({} words added, {} words deleted)".format(index, worst_stu_name[i], worst_stu_add[i],
+                                                                        worst_stu_del[i])
+            content_list.append(record)
+            index += 1
+
+    content = "<br>".join(content_list)
+
+    prpty = {
+        "style": "padding-left:3em;margin:2px;"
+    }
+
+    content = add_html_tag_with_prpty('p', content, **prpty)
+    content += "<br>"
+
+    text = sub_title + content
+
+    return text
+
+
 
 def gen_email_text(addr_from, addr_to, subj, *bcc, **info):
     bcc_str = tuple2str(bcc, ", ")
